@@ -27,7 +27,23 @@ class SubtaskSerializer(serializers.ModelSerializer):
         fields = ['id', 'description', 'is_completed']
 
 class TaskSerializer(serializers.ModelSerializer):
+    tags = TagSerializer(many=True, read_only=True)
+    tag_ids = serializers.PrimaryKeyRelatedField(many=True, write_only=True, queryset=Tag.objects.all(), source='tags', required=False)
+
     class Meta:
         model = Task
-        fields = ['id', 'title', 'description', 'due_date', 'priority', 'status', 'category', 'tags']
+        fields = ['id', 'title', 'description', 'due_date', 'priority', 'status', 'category', 'tags', 'tag_ids']
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        tags = validated_data.pop('tags', [])
+        task = Task.objects.create(**validated_data)
+        task.tags.set(tags)
+        return task
+
+    def update(self, instance, validated_data):
+        tags = validated_data.pop('tags', None)
+        task = super().update(instance, validated_data)
+        if tags is not None:
+            task.tags.set(tags)
+        return task

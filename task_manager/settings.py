@@ -10,7 +10,14 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+import django_on_heroku
+from dotenv import load_dotenv
+import dj_database_url
+load_dotenv()
+
+ENV = str(os.getenv('ENVIRONMENT', 'DEV'))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,12 +26,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-4*76$(v4-g6cqj%rmjq%+!h8y#yxnlk1md(m#v_9=m#$lgnxo9'
+if ENV == 'DEV':
+    
+    SECRET_KEY = 'django-insecure-4*76$(v4-g6cqj%rmjq%+!h8y#yxnlk1md(m#v_9=m#$lgnxo9'
+else:
+    SECRET_KEY = str(os.getenv('SECRET_KEY'))
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = ENV == 'DEV'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -37,6 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    'corsheaders',
     'tasks',
     'django_filters',
 ]
@@ -49,7 +61,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'task_manager.urls'
 
@@ -74,12 +90,16 @@ WSGI_APPLICATION = 'task_manager.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+DATABASES = {}
+if ENV != 'DEV':
+     DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)	
+else:
+     DATABASES['default'] =  {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'task_manager_db',
+        'HOST': 'localhost',
+        'PORT': 5432
     }
-}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -128,3 +148,5 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
+
+django_on_heroku.settings(locals())

@@ -25,7 +25,7 @@ class Task(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    due_date = models.DateField(null=True, blank=True)
+    due_date = models.DateTimeField(null=True, blank=True)  # Changed from DateField to DateTimeField
     priority = models.IntegerField(default=0)
     status = models.CharField(max_length=20, default='To Do')
     created_at = models.DateTimeField(auto_now_add=True)

@@ -8,6 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .models import User, Category, Tag, Task, Subtask
 from .serializers import UserSerializer, CategorySerializer, TagSerializer, TaskSerializer, SubtaskSerializer
 from django.http import HttpResponse
+from django.db.models import Q
 
 class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
@@ -32,12 +33,21 @@ class TagViewSet(viewsets.ModelViewSet):
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
     filterset_fields = ['category', 'priority', 'status']
     ordering_fields = ['due_date', 'priority', 'created_at']
+    search_fields = ['title', 'description', 'category__name']
 
     def get_queryset(self):
-        return Task.objects.filter(user=self.request.user)
+        queryset = Task.objects.filter(user=self.request.user)
+        search_term = self.request.query_params.get('search', None)
+        if search_term:
+            queryset = queryset.filter(
+                Q(title__icontains=search_term) |
+                Q(description__icontains=search_term) |
+                Q(category__name__icontains=search_term)
+            )
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
