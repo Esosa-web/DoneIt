@@ -35,7 +35,14 @@ else:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = ENV == 'DEV'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    'task-master1234-4da2490382e7.herokuapp.com',
+    'esosa-task-manager.netlify.app',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://esosa-task-manager.netlify.app',
+]
 
 # Application definition
 
