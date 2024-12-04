@@ -42,6 +42,7 @@ ALLOWED_HOSTS = [
 
 CSRF_TRUSTED_ORIGINS = [
     'https://esosa-task-manager.netlify.app',
+    'https://task-master1234-4da2490382e7.herokuapp.com',
 ]
 
 # Application definition
